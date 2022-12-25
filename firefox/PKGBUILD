@@ -67,6 +67,7 @@ source=(
   $pkgname.desktop
   identity-icons-brand.svg
   0001-libwebrtc-screen-cast-sync.patch
+  0002-early-wl-display-roundtrip.patch
 )
 validpgpkeys=(
   '14F26682D0916CDD81E37B6D61B7B526D98F0353'  # Mozilla Software Releases <release@mozilla.com>
@@ -75,12 +76,14 @@ sha256sums=('9821ac130dad01383e03276bf6cc92d41329d351da1fa7fa238168f8890611ea'
             'SKIP'
             '298eae9de76ec53182f38d5c549d0379569916eebf62149f9d7f4a7edef36abf'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            '5c164f6dfdf2d97f3f317e417aaa2e6ae46a9b3a160c3162d5073fe39d203286')
+            '5c164f6dfdf2d97f3f317e417aaa2e6ae46a9b3a160c3162d5073fe39d203286'
+            'fdee493a1ceefdd704546cf8005326cdefb308a92a93404669501ba8e535a73c')
 b2sums=('fbdf5c32e81a676867375aa2a42f0f5d649fc6e37bff729d69c7a3477eb09e553f5bfa53625f9848ad0694388ddeba11d63350105228253dcdd8a303fb9c963f'
         'SKIP'
         'e18f2c22e394ca3b6758bc130245b254947e4d15921be3da443d6d7c3c4b0d22ead1b39fbc10a4f896edd19e2a1dffbd1cbb34dc4beb0621a6ddb70ccc53b3a7'
         '63a8dd9d8910f9efb353bed452d8b4b2a2da435857ccee083fc0c557f8c4c1339ca593b463db320f70387a1b63f1a79e709e9d12c69520993e26d85a3d742e34'
-        '28a22a11572fba86bf8412f86a2eca8dc34ce42e790d9c9b1e0b1a66959b2b0240353e0aef22741d6d2baa08bc7ff35ddfd3770b706654ffa8089a26495e4ee3')
+        '28a22a11572fba86bf8412f86a2eca8dc34ce42e790d9c9b1e0b1a66959b2b0240353e0aef22741d6d2baa08bc7ff35ddfd3770b706654ffa8089a26495e4ee3'
+        'e86c9310ae3f44815ae920b3d3ac43afc8c9969d3f50041804361b28ff6b4e3ebdab84c0f8353cc7d09c42a95454ab06f587c52e099caa0635daca1796f3bf64')
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
 # Note: These are for Arch Linux use ONLY. For your own distribution, please
@@ -102,6 +105,10 @@ prepare() {
   # https://bugzilla.mozilla.org/show_bug.cgi?id=1790496
   # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
   patch -Np1 -i ../0001-libwebrtc-screen-cast-sync.patch
+
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=1759315
+  # https://phabricator.services.mozilla.com/D164578
+  patch -Np1 -i ../0002-early-wl-display-roundtrip.patch
 
   echo -n "$_google_api_key" >google-api-key
   echo -n "$_mozilla_api_key" >mozilla-api-key
