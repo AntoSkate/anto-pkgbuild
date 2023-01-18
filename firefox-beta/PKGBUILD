@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-beta
-pkgver=110.0b1
+pkgver=110.0b2
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 url="https://www.mozilla.org/firefox/"
@@ -77,12 +77,12 @@ source=(
 validpgpkeys=(
   '14F26682D0916CDD81E37B6D61B7B526D98F0353'  # Mozilla Software Releases <release@mozilla.com>
 )
-sha256sums=('e217b1474ab9a8c783d8930aec327d3e555d64bfe3e943e757c26f45adaa83ad'
+sha256sums=('4c7a20cc3b58bb585626595f4fbb4323aa3784a150dc7b4b4e06b003a264f16a'
             'SKIP'
             '298eae9de76ec53182f38d5c549d0379569916eebf62149f9d7f4a7edef36abf'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             'fdee493a1ceefdd704546cf8005326cdefb308a92a93404669501ba8e535a73c')
-b2sums=('587ac0b9f57734268b9046d987ac0910d2ba8d08e5c5468e7e40f9d2b1d6f812bb8dddddb887b045d42bc64f3364d78c6faad9342afe33eaaa346c722bde959c'
+b2sums=('a1e2615c22d2f54121eac58e96165e4fcf163434d09612c00b58683c052c2e4ac81f9096bb35306a48e412886afd4a7640d1254b8df5b3267e8ab905f5fb73e9'
         'SKIP'
         'e18f2c22e394ca3b6758bc130245b254947e4d15921be3da443d6d7c3c4b0d22ead1b39fbc10a4f896edd19e2a1dffbd1cbb34dc4beb0621a6ddb70ccc53b3a7'
         '63a8dd9d8910f9efb353bed452d8b4b2a2da435857ccee083fc0c557f8c4c1339ca593b463db320f70387a1b63f1a79e709e9d12c69520993e26d85a3d742e34'
