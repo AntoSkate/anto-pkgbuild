@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-beta
-pkgver=110.0b9
+pkgver=111.0b1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 url="https://www.mozilla.org/firefox/"
@@ -72,21 +72,21 @@ source=(
   https://archive.mozilla.org/pub/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.xz{,.asc}
   $pkgname.desktop
   identity-icons-brand.svg
-  0001-early-wl-display-roundtrip.patch
+  0001-libwebrtc-screen-cast-sync.patch
 )
 validpgpkeys=(
   '14F26682D0916CDD81E37B6D61B7B526D98F0353'  # Mozilla Software Releases <release@mozilla.com>
 )
-sha256sums=('b8a8f4d28ef9878edbdf740933fc78a8236ddaffe413e325a21d35269ebe6006'
+sha256sums=('b9173ada9212927a09471b92c6792ea3c8279b4324542387bebf9110bfae1612'
             'SKIP'
             '298eae9de76ec53182f38d5c549d0379569916eebf62149f9d7f4a7edef36abf'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            'fdee493a1ceefdd704546cf8005326cdefb308a92a93404669501ba8e535a73c')
-b2sums=('8001347b8e0a7c373e2281e30907c108f8eebfe6af417cca1403429125d8631c6fafefa5472c59451477b455c7da61f99cafc535097e52aeb76b2e20391f8565'
+            '43c83101b7ad7dba6f5fffeb89b70a661a547d506a031ea2beada42ccf04eec7')
+b2sums=('a4e616377bdc2326d47b7c7f58b711bdc6ad8f57fe2c7d0e8b01420b8fdd5c78cc4698aa23af8774dbaca6d65c87d473f55bf398a2b3b7caa44b70c5cd516a25'
         'SKIP'
         'e18f2c22e394ca3b6758bc130245b254947e4d15921be3da443d6d7c3c4b0d22ead1b39fbc10a4f896edd19e2a1dffbd1cbb34dc4beb0621a6ddb70ccc53b3a7'
         '63a8dd9d8910f9efb353bed452d8b4b2a2da435857ccee083fc0c557f8c4c1339ca593b463db320f70387a1b63f1a79e709e9d12c69520993e26d85a3d742e34'
-        'e86c9310ae3f44815ae920b3d3ac43afc8c9969d3f50041804361b28ff6b4e3ebdab84c0f8353cc7d09c42a95454ab06f587c52e099caa0635daca1796f3bf64')
+        '2bf65874c8c1f41c9273b68d74f4fe5c81dca5acbad0b9a5f917df1d46e1b2a1fb25d42a419eb885e76f4d193483cdeb6294e14ed4b2e241c34b84565b6ffd72')
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
 # Note: These are for Arch Linux use ONLY. For your own distribution, please
@@ -104,9 +104,10 @@ prepare() {
   mkdir mozbuild
   cd firefox-${pkgver//b*/}
 
-  # https://bugzilla.mozilla.org/show_bug.cgi?id=1759315
-  # https://phabricator.services.mozilla.com/D164578
-  patch -Np1 -i ../0001-early-wl-display-roundtrip.patch
+  # https://bugs.archlinux.org/task/76231
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=1790496
+  # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
+  patch -Np1 -i ../0001-libwebrtc-screen-cast-sync.patch
 
   echo -n "$_google_api_key" >google-api-key
   echo -n "$_mozilla_api_key" >mozilla-api-key
