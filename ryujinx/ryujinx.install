@@ -1,0 +1,6 @@
+pre_remove() {
+	if [ -f /opt/Ryujinx/Logs/* ]
+	then
+		rm /opt/Ryujinx/Logs/*
+	fi
+}

@@ -1,0 +1,40 @@
+pkgname=ryujinx
+pkgver=1.1.724
+pkgrel=1
+pkgdesc='Experimental Nintendo Switch Emulator written in C#'
+arch=(x86_64)
+url=https://ryujinx.org/
+license=(MIT)
+depends=(dotnet-runtime sdl2)
+makedepends=(dotnet-sdk)
+options=(!strip)
+install=ryujinx.install
+source=(git+https://github.com/Ryujinx/Ryujinx.git)
+b2sums=(SKIP)
+prepare() {
+	cd Ryujinx
+	pkghash=$(git rev-parse --short HEAD)
+}
+pkgver() {
+	cd Ryujinx
+	git describe --tags
+}
+build() {
+	cd Ryujinx
+	dotnet publish -c Release -r linux-x64 -o ${srcdir}/Ryujinx/publish -p:Version="${pkgver}" -p:SourceRevisionId="${pkghash}" -p:DebugType=embedded Ryujinx --self-contained true
+}
+package() {
+	mkdir -p "${pkgdir}/opt"
+	cp -R "${srcdir}/Ryujinx/publish" "${pkgdir}/opt/Ryujinx"
+	mkdir -p -m 777 "${pkgdir}/opt/Ryujinx/Logs"
+	mkdir -p "${pkgdir}/usr/bin"
+
+	install -D "${srcdir}/Ryujinx/distribution/linux/Ryujinx.desktop" "${pkgdir}/usr/share/applications/Ryujinx.desktop"
+	install -D "${srcdir}/Ryujinx/distribution/misc/Logo.svg" "${pkgdir}/usr/share/icons/hicolor/scalable/apps/Ryujinx.svg"
+	install -D "${srcdir}/Ryujinx/distribution/linux/mime/Ryujinx.xml" "${pkgdir}/usr/share/mime/packages//Ryujinx.xml"
+
+	rm "${pkgdir}/opt/Ryujinx/libSDL2.so"
+	ln -s "/usr/lib/libSDL2.so" "${pkgdir}/opt/Ryujinx/libSDL2.so"
+
+	ln -s "/opt/Ryujinx/Ryujinx" "${pkgdir}/usr/bin/Ryujinx"
+}
