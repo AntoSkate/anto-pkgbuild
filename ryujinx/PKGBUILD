@@ -21,7 +21,7 @@ pkgver() {
 }
 build() {
 	cd Ryujinx
-	dotnet publish -c Release -r linux-x64 -o ${srcdir}/Ryujinx/publish -p:Version="${pkgver}" -p:SourceRevisionId="${pkghash}" -p:DebugType=embedded Ryujinx --self-contained true
+	dotnet publish -c Release -r linux-x64 -o ${srcdir}/Ryujinx/publish -p:Version="${pkgver}" -p:SourceRevisionId="${pkghash}" -p:DebugType=embedded src/Ryujinx --self-contained true
 }
 package() {
 	mkdir -p "${pkgdir}/opt"
