@@ -1,7 +1,7 @@
 pkgname=yuzu-early-access-qt6
-pkgver=r23543.5777b94
+pkgver=r23787.e2c927c
 pkgrel=1
-pkgdesc='yuzu early access qt6'
+pkgdesc='Nintendo Switch Emulator'
 arch=(x86_64)
 url=https://yuzu-emu.org/
 license=(GPL3)
@@ -37,6 +37,8 @@ makedepends=(
   llvm
   ninja
   nlohmann-json
+  python
+  python-requests
   qt6-tools
   shaderc
   spirv-headers
@@ -52,12 +54,14 @@ source=(
   git+https://github.com/arun11299/cpp-jwt.git
   git+https://github.com/mozilla/cubeb.git
   git+https://github.com/MerryMage/dynarmic.git
+  yuzu-discord-rpc::git+https://github.com/yuzu-emu/discord-rpc.git
   yuzu-mbedtls::git+https://github.com/yuzu-emu/mbedtls.git
   yuzu-sirit::git+https://github.com/yuzu-emu/sirit.git
   git+https://github.com/herumi/xbyak.git
   https://raw.githubusercontent.com/yuzu-emu/yuzu/master/.ci/scripts/merge/apply-patches-by-label.py
 )
 b2sums=('SKIP'
+        'SKIP'
         'SKIP'
         'SKIP'
         'SKIP'
@@ -76,6 +80,7 @@ prepare() {
   git config submodule.cpp-jwt.url "${srcdir}"/cpp-jwt
   git config submodule.cubeb.url "${srcdir}"/cubeb
   git config submodule.dynarmic.url "${srcdir}"/dynarmic
+  git config submodule.discord-rpc.url "${srcdir}"/yuzu-discord-rpc
   git config submodule.mbedtls.url "${srcdir}"/yuzu-mbedtls
   git config submodule.sirit.url "${srcdir}"/yuzu-sirit
   git config submodule.xbyak.url "${srcdir}"/xbyak
@@ -92,7 +97,7 @@ pkgver() {
 
 build() {
   cmake -S yuzu -B build -G Ninja \
-    -DCMAKE_BUILD_TYPE=None \
+    -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DBUILD_REPOSITORY=yuzu-emu/yuzu \
     -DBUILD_TAG=${pkgver} \
@@ -104,7 +109,7 @@ build() {
     -DSIRIT_USE_SYSTEM_SPIRV_HEADERS=ON \
     -DTITLE_BAR_FORMAT_IDLE="yuzu | ${pkgver} {}" \
     -DTITLE_BAR_FORMAT_RUNNING="yuzu | ${pkgver} | {}" \
-    -DUSE_DISCORD_PRESENCE=OFF \
+    -DUSE_DISCORD_PRESENCE=ON \
     -DYUZU_CHECK_SUBMODULES=OFF \
     -DYUZU_ENABLE_LTO=ON \
     -DYUZU_USE_BUNDLED_FFMPEG=OFF \
