@@ -1,5 +1,5 @@
 pkgname=yuzu-early-access-qt6
-pkgver=r23787.e2c927c
+pkgver=r24382.dd42bfa
 pkgrel=1
 pkgdesc='Nintendo Switch Emulator'
 arch=(x86_64)
@@ -54,6 +54,7 @@ source=(
   git+https://github.com/arun11299/cpp-jwt.git
   git+https://github.com/mozilla/cubeb.git
   git+https://github.com/MerryMage/dynarmic.git
+  git+https://github.com/bylaws/libadrenotools.git
   yuzu-discord-rpc::git+https://github.com/yuzu-emu/discord-rpc.git
   yuzu-mbedtls::git+https://github.com/yuzu-emu/mbedtls.git
   yuzu-sirit::git+https://github.com/yuzu-emu/sirit.git
@@ -61,6 +62,7 @@ source=(
   https://raw.githubusercontent.com/yuzu-emu/yuzu/master/.ci/scripts/merge/apply-patches-by-label.py
 )
 b2sums=('SKIP'
+        'SKIP'
         'SKIP'
         'SKIP'
         'SKIP'
@@ -80,6 +82,7 @@ prepare() {
   git config submodule.cpp-jwt.url "${srcdir}"/cpp-jwt
   git config submodule.cubeb.url "${srcdir}"/cubeb
   git config submodule.dynarmic.url "${srcdir}"/dynarmic
+  git config submodule.libadrenotools.url "${srcdir}"/libadrenotools
   git config submodule.discord-rpc.url "${srcdir}"/yuzu-discord-rpc
   git config submodule.mbedtls.url "${srcdir}"/yuzu-mbedtls
   git config submodule.sirit.url "${srcdir}"/yuzu-sirit
