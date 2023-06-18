@@ -1,5 +1,5 @@
 pkgname=yuzu-early-access-qt6
-pkgver=r24382.dd42bfa
+pkgver=r24450.6e293be
 pkgrel=1
 pkgdesc='Nintendo Switch Emulator'
 arch=(x86_64)
@@ -55,6 +55,8 @@ source=(
   git+https://github.com/mozilla/cubeb.git
   git+https://github.com/MerryMage/dynarmic.git
   git+https://github.com/bylaws/libadrenotools.git
+  git+https://github.com/eggert/tz.git
+  git+https://github.com/lat9nq/tzdb_to_nx.git
   yuzu-discord-rpc::git+https://github.com/yuzu-emu/discord-rpc.git
   yuzu-mbedtls::git+https://github.com/yuzu-emu/mbedtls.git
   yuzu-sirit::git+https://github.com/yuzu-emu/sirit.git
@@ -62,6 +64,8 @@ source=(
   https://raw.githubusercontent.com/yuzu-emu/yuzu/master/.ci/scripts/merge/apply-patches-by-label.py
 )
 b2sums=('SKIP'
+        'SKIP'
+        'SKIP'
         'SKIP'
         'SKIP'
         'SKIP'
@@ -83,6 +87,7 @@ prepare() {
   git config submodule.cubeb.url "${srcdir}"/cubeb
   git config submodule.dynarmic.url "${srcdir}"/dynarmic
   git config submodule.libadrenotools.url "${srcdir}"/libadrenotools
+  git config submodule.tzdb_to_nx.url "${srcdir}"/tzdb_to_nx
   git config submodule.discord-rpc.url "${srcdir}"/yuzu-discord-rpc
   git config submodule.mbedtls.url "${srcdir}"/yuzu-mbedtls
   git config submodule.sirit.url "${srcdir}"/yuzu-sirit
@@ -90,6 +95,9 @@ prepare() {
   git -c protocol.file.allow=always submodule update
   cd externals/cubeb
   git config submodule.cmake/sanitizers-cmake.url "${srcdir}"/sanitizers-cmake
+  git -c protocol.file.allow=always submodule update
+  cd ../../externals/nx_tzdb/tzdb_to_nx
+  git config submodule.externals/tz/tz.url "${srcdir}"/tz
   git -c protocol.file.allow=always submodule update
 }
 
