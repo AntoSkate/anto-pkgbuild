@@ -1,7 +1,7 @@
 # Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
 pkgbase=nvidia-open
 pkgname=(nvidia-open nvidia-open-dkms)
-pkgver=545.23.06
+pkgver=545.29.02
 pkgrel=1
 pkgdesc="NVIDIA open kernel modules"
 arch=('x86_64')
