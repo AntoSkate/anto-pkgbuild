@@ -1,5 +1,5 @@
 pkgname=yuzu-early-access-qt6
-pkgver=r24583.78426ad
+pkgver=r25939.ee7a54b
 pkgrel=1
 pkgdesc='Nintendo Switch Emulator'
 arch=(x86_64)
@@ -57,6 +57,7 @@ source=(
   git+https://github.com/MerryMage/dynarmic.git
   git+https://github.com/bylaws/libadrenotools.git
   yuzu-mbedtls::git+https://github.com/yuzu-emu/mbedtls.git
+  git+https://github.com/brofield/simpleini.git
   yuzu-sirit::git+https://github.com/yuzu-emu/sirit.git
   git+https://github.com/eggert/tz.git
   git+https://github.com/lat9nq/tzdb_to_nx.git
@@ -65,6 +66,7 @@ source=(
   https://raw.githubusercontent.com/yuzu-emu/yuzu/master/.ci/scripts/merge/apply-patches-by-label.py
 )
 b2sums=('SKIP'
+        'SKIP'
         'SKIP'
         'SKIP'
         'SKIP'
@@ -91,6 +93,7 @@ prepare() {
   git config submodule.dynarmic.url "${srcdir}"/dynarmic
   git config submodule.libadrenotools.url "${srcdir}"/libadrenotools
   git config submodule.mbedtls.url "${srcdir}"/yuzu-mbedtls
+  git config submodule.simpleini.url "${srcdir}"/simpleini
   git config submodule.sirit.url "${srcdir}"/yuzu-sirit
   git config submodule.tzdb_to_nx.url "${srcdir}"/tzdb_to_nx
   git config submodule.VulkanMemoryAllocator.url "${srcdir}"/VulkanMemoryAllocator
