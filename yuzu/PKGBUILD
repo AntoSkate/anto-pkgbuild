@@ -1,20 +1,21 @@
 pkgname=yuzu-early-access-qt6
-pkgver=r25939.ee7a54b
+pkgver=r26179.3f26de9
 pkgrel=1
-pkgdesc='Nintendo Switch Emulator'
+pkgdesc='Nintendo Switch emulator'
 arch=(x86_64)
 url=https://yuzu-emu.org/
 license=(GPL3)
 depends=(
+  brotli
   enet
   gcc-libs
   glibc
+  hicolor-icon-theme
   libavcodec.so
   libavutil.so
   libboost_context.so
   libcrypto.so
   libfmt.so
-  libINIReader.so
   libopus.so
   libspeexdsp.so
   libssl.so
@@ -27,11 +28,13 @@ depends=(
   qt6-multimedia
   qt6-webengine
   sdl2
+  zlib
 )
 makedepends=(
   boost
   clang
   cmake
+  ffmpeg
   git
   glslang
   llvm
@@ -53,12 +56,12 @@ source=(
   git+https://github.com/yhirose/cpp-httplib.git
   git+https://github.com/arun11299/cpp-jwt.git
   git+https://github.com/mozilla/cubeb.git
-  yuzu-discord-rpc::git+https://github.com/yuzu-emu/discord-rpc.git
   git+https://github.com/MerryMage/dynarmic.git
   git+https://github.com/bylaws/libadrenotools.git
   yuzu-mbedtls::git+https://github.com/yuzu-emu/mbedtls.git
   git+https://github.com/brofield/simpleini.git
   yuzu-sirit::git+https://github.com/yuzu-emu/sirit.git
+  git+https://github.com/KhronosGroup/SPIRV-Headers.git
   git+https://github.com/eggert/tz.git
   git+https://github.com/lat9nq/tzdb_to_nx.git
   git+https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
@@ -89,7 +92,6 @@ prepare() {
   git config submodule.cpp-httplib.url "${srcdir}"/cpp-httplib
   git config submodule.cpp-jwt.url "${srcdir}"/cpp-jwt
   git config submodule.cubeb.url "${srcdir}"/cubeb
-  git config submodule.discord-rpc.url "${srcdir}"/yuzu-discord-rpc
   git config submodule.dynarmic.url "${srcdir}"/dynarmic
   git config submodule.libadrenotools.url "${srcdir}"/libadrenotools
   git config submodule.mbedtls.url "${srcdir}"/yuzu-mbedtls
@@ -109,6 +111,11 @@ prepare() {
   git config submodule.externals/tz/tz.url "${srcdir}"/tz
   git -c protocol.file.allow=always submodule update
   popd
+
+  pushd externals/sirit
+  git config submodule.externals/SPIRV-Headers.url "${srcdir}"/SPIRV-Headers
+  git -c protocol.file.allow=always submodule update
+  popd
 }
 
 pkgver() {
@@ -117,6 +124,7 @@ pkgver() {
 }
 
 build() {
+  export CXXFLAGS+=' -Wno-switch'
   cmake -S yuzu -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr \
@@ -130,8 +138,9 @@ build() {
     -DSIRIT_USE_SYSTEM_SPIRV_HEADERS=ON \
     -DTITLE_BAR_FORMAT_IDLE="yuzu | ${pkgver} {}" \
     -DTITLE_BAR_FORMAT_RUNNING="yuzu | ${pkgver} | {}" \
-    -DUSE_DISCORD_PRESENCE=ON \
+    -DUSE_DISCORD_PRESENCE=OFF \
     -DYUZU_CHECK_SUBMODULES=OFF \
+    -DYUZU_DOWNLOAD_TIME_ZONE_DATA=ON \
     -DYUZU_ENABLE_LTO=ON \
     -DYUZU_USE_BUNDLED_FFMPEG=OFF \
     -DYUZU_USE_BUNDLED_QT=OFF \
@@ -149,4 +158,5 @@ build() {
 
 package() {
   DESTDIR="${pkgdir}" cmake --install build
+  install -Dm644 yuzu/dist/72-yuzu-input.rules -t "${pkgdir}"/usr/lib/udev/rules.d/
 }
