@@ -1,0 +1,42 @@
+_electronversion=29
+pkgname=vesktop-git
+pkgver=v1.5.1.r9.g2733727
+pkgrel=1
+pkgdesc="A custom Discord App aiming to give you better performance and improve linux support"
+arch=('any')
+url="https://vencord.dev"
+license=("GPL-3.0-only")
+depends=("electron$_electronversion")
+makedepends=(
+	"git"
+	"pnpm"
+)
+source=("git+https://github.com/Vencord/Vesktop.git" "https://patch-diff.githubusercontent.com/raw/Vencord/Vesktop/pull/527.patch")
+sha256sums=('SKIP' 'SKIP')
+
+prepare() {
+	cd Vesktop
+	patch -Np1 -i ../527.patch
+}
+
+pkgver() {
+	cd Vesktop
+	git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+build() {
+	cd Vesktop
+	pnpm i
+	pnpm package:dir
+}
+
+package() {
+	install -Dt "$pkgdir/usr/share/vesktop/" "Vesktop/dist/linux-unpacked/resources/app.asar"
+	install -Dm644 "Vesktop/static/icon.png" "$pkgdir/usr/share/pixmaps/vesktop.png"
+
+	echo -ne "#!/usr/bin/bash\nelectron$_electronversion /usr/share/vesktop/app.asar \"\$@\"\nexit \$?" > execvesktop
+	install -Dm755 "execvesktop" "$pkgdir/usr/bin/vesktop"
+
+	echo -ne "[Desktop Entry]\nName=Vesktop\nExec=vesktop %U\nTerminal=false\nType=Application\nIcon=vesktop\nStartupWMClass=Vesktop\nGenericName=Internet Messenger\nCategories=Network;\nKeywords=discord;vencord;electron;chat;" > vesktop.desktop
+	install -Dm755 "vesktop.desktop" "$pkgdir/usr/share/applications/vesktop.desktop"
+}
