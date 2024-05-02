@@ -1,0 +1,34 @@
+pkgname=r-quick-share-git
+pkgver=v0.7.1.r1.gb6aa08e
+pkgrel=1
+pkgdesc="Rust implementation of NearbyShare/QuickShare from Android for Linux."
+arch=('any')
+url="https://github.com/Martichou/rquickshare"
+license=("GPL-3.0-only")
+depends=("gtk4" "libayatana-appindicator" "webkit2gtk")
+makedepends=("git" "cargo" "pnpm" "protobuf")
+source=("git+https://github.com/Martichou/rquickshare.git")
+sha256sums=('SKIP')
+
+prepare() {
+	cd rquickshare
+	sed -i -e 's/"targets": "all"/"targets": "deb"/g' frontend/src-tauri/tauri.conf.json
+}
+
+pkgver() {
+	cd rquickshare
+	git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+build() {
+	cd rquickshare/core_lib
+	cargo build --release
+	cd ../frontend
+	pnpm install
+	pnpm build
+}
+
+package() {
+	cp -r rquickshare/frontend/src-tauri/target/release/bundle/deb/r-quick-share_*_amd64/data/* "$pkgdir"
+	rm -r rquickshare/frontend/src-tauri/target/release/bundle/deb/*
+}
