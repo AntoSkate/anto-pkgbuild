@@ -1,6 +1,6 @@
 _electronversion=29
 pkgname=vesktop-git
-pkgver=v1.5.1.r9.g2733727
+pkgver=v1.5.2.r1.gcb55cf4
 pkgrel=1
 pkgdesc="A custom Discord App aiming to give you better performance and improve linux support"
 arch=('any')
@@ -11,13 +11,8 @@ makedepends=(
 	"git"
 	"pnpm"
 )
-source=("git+https://github.com/Vencord/Vesktop.git" "https://patch-diff.githubusercontent.com/raw/Vencord/Vesktop/pull/527.patch")
-sha256sums=('SKIP' 'SKIP')
-
-prepare() {
-	cd Vesktop
-	patch -Np1 -i ../527.patch
-}
+source=("git+https://github.com/Vencord/Vesktop.git")
+sha256sums=('SKIP')
 
 pkgver() {
 	cd Vesktop
