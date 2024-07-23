@@ -1,18 +1,16 @@
-# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
 pkgname=nvidia-open
-pkgver=555.52.04
+pkgver=560.28.03
 pkgrel=1
 pkgdesc="NVIDIA open kernel modules"
 arch=('x86_64')
 url="https://github.com/NVIDIA/open-gpu-kernel-modules"
-depends=("nvidia-utils=${pkgver}" 'libglvnd' 'dkms')
+depends=('dkms' "nvidia-utils=${pkgver}" 'libglvnd')
 makedepends=('linux-headers')
-conflicts=('NVIDIA-MODULE')
 provides=('NVIDIA-MODULE')
-license=('GPL')
+license=('MIT AND GPL-2.0-only')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/${pkgver}.tar.gz"
         nvidia-open-gcc-ibt-sls.patch)
-sha512sums=('cedb61548abe81e60114cb7eefc8a3a334b5a034408840b188c62126fc3c683e764db8887d9ccde3bc0bc012f4c77ef17b57c5b1971acd8be515dc5d7b652e18'
+sha512sums=('e912076e7e934d5ddbc6c781723cf14060f8a12d876be45011dbef03aafef87541c6afa74c9a1837e4ac20f4bcea008cdc6c258747cfa13acb726999815ff6a8'
             '263c4c5e75ef8cb8ca2641c022dfaf8bd9222fadf68ed15120b0ae7dd9cc901a04ce2e55625d513a0995759c9d82dfbdc4c33d4751159124915d7404b1400e34')
 
 prepare() {
@@ -61,10 +59,6 @@ package() {
   # cp -dr --no-preserve='ownership' kernel-open "${pkgdir}/usr/src/nvidia-$pkgver"
   cp -dr --no-preserve='ownership' open-gpu-kernel-modules-dkms "${pkgdir}/usr/src/nvidia-$pkgver"
   mv "${pkgdir}/usr/src/nvidia-$pkgver/kernel-open/dkms.conf" "${pkgdir}/usr/src/nvidia-$pkgver/dkms.conf"
-
-  # Force module to load even on unsupported GPUs
-  mkdir -p "$pkgdir"/usr/lib/modprobe.d
-  echo "options nvidia NVreg_OpenRmEnableUnsupportedGpus=1" > "$pkgdir"/usr/lib/modprobe.d/nvidia-open.conf
 
   install -Dm644 open-gpu-kernel-modules-${pkgver}/COPYING "$pkgdir"/usr/share/licenses/$pkgname
 }

@@ -1,11 +1,7 @@
-# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
-# Contributor: Thomas Baechler <thomas@archlinux.org>
-# Contributor: James Rayner <iphitus@gmail.com>
-
 _pkgbasename=nvidia-utils
 pkgbase=lib32-$_pkgbasename
 pkgname=('lib32-nvidia-utils' 'lib32-opencl-nvidia')
-pkgver=555.52.04
+pkgver=560.28.03
 pkgrel=1
 arch=('x86_64')
 url="http://www.nvidia.com/"
@@ -14,7 +10,7 @@ license=('custom')
 options=('!strip')
 _pkg="NVIDIA-Linux-x86_64-${pkgver}"
 source=("https://us.download.nvidia.com/XFree86/Linux-x86_64/${pkgver}/${_pkg}.run")
-sha512sums=('4b0b082105013e17d67976e12fc88607f4c7d89880ca1b13e0fb79f90f0173e472dda17b28cc1d3bbdfb80062c91ee237ad0f0f5ae8a894bc3f3f680bbf0c5ee')
+sha512sums=('0ab19203be58c22f29a393280eb4aaae18949744af301c224ac9c691c168444cf9b780f5d7fb51a9987019e3dab18f706e92c6a5e40717dbf02af3a3def2e4f0')
 
 create_links() {
     # create soname links
@@ -73,6 +69,7 @@ package_lib32-nvidia-utils() {
     install -D -m755 "libnvidia-glsi.so.${pkgver}" "${pkgdir}/usr/lib32/libnvidia-glsi.so.${pkgver}"
 
     # misc
+    mkdir -p "${pkgdir}/usr/lib32/gbm" && ln -sr "${pkgdir}/usr/lib32/libnvidia-allocator.so.${pkgver}" "${pkgdir}/usr/lib32/gbm/nvidia-drm_gbm.so"
     install -D -m755 "libnvidia-fbc.so.${pkgver}" "${pkgdir}/usr/lib32/libnvidia-fbc.so.${pkgver}"
     install -D -m755 "libnvidia-encode.so.${pkgver}" "${pkgdir}/usr/lib32/libnvidia-encode.so.${pkgver}"
     install -D -m755 "libnvidia-ml.so.${pkgver}" "${pkgdir}/usr/lib32/libnvidia-ml.so.${pkgver}"
