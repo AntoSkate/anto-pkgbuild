@@ -1,7 +1,7 @@
 pkgbase=nvidia-utils
-pkgname=('nvidia-utils' 'opencl-nvidia' 'nvidia-dkms')
-pkgver=560.28.03
-pkgrel=3
+pkgname=('nvidia-utils' 'opencl-nvidia' 'nvidia-open')
+pkgver=565.57.01
+pkgrel=1
 arch=('x86_64')
 url="http://www.nvidia.com/"
 license=('custom')
@@ -13,13 +13,25 @@ source=('nvidia-drm-outputclass.conf'
         'nvidia.rules'
         'systemd-homed-override.conf'
         'systemd-suspend-override.conf'
-        "https://us.download.nvidia.com/XFree86/Linux-x86_64/${pkgver}/${_pkg}.run")
+        'nvidia-sleep.conf'
+        "https://us.download.nvidia.com/XFree86/Linux-x86_64/${pkgver}/${_pkg}.run"
+        "$pkgname-$pkgver.tar.gz::https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/${pkgver}.tar.gz"
+        "make-modeset-fbdev-default.patch"
+        "nvidia-open-gcc-ibt-sls.patch"
+        "silence-event-assert-until-570.patch"
+        "fix-hdmi-names.patch")
 sha512sums=('de7116c09f282a27920a1382df84aa86f559e537664bb30689605177ce37dc5067748acf9afd66a3269a6e323461356592fdfc624c86523bf105ff8fe47d3770'
             '4b3ad73f5076ba90fe0b3a2e712ac9cde76f469cd8070280f960c3ce7dc502d1927f525ae18d008075c8f08ea432f7be0a6c3a7a6b49c361126dcf42f97ec499'
             'f8f071f5a46c1a5ce5188e104b017808d752e61c0c20de1466feb5d693c0b55a5586314411e78cc2ab9c0e16e2c67afdd358da94c0c75df1f8233f54c280762c'
             'a0183adce78e40853edf7e6b73867e7a8ea5dabac8e8164e42781f64d5232fbe869f850ab0697c3718ebced5cde760d0e807c05da50a982071dfe1157c31d6b8'
             '55def6319f6abb1a4ccd28a89cd60f1933d155c10ba775b8dfa60a2dc5696b4b472c14b252dc0891f956e70264be87c3d5d4271e929a4fc4b1a68a6902814cee'
-            '0ab19203be58c22f29a393280eb4aaae18949744af301c224ac9c691c168444cf9b780f5d7fb51a9987019e3dab18f706e92c6a5e40717dbf02af3a3def2e4f0')
+            'c7fea39d11565f05a507d3aded4e9ea506ef9dbebf313e0fc8d6ebc526af3f9d6dec78af9d6c4456c056310f98911c638706bccdd9926d07f492615569430455'
+            '8f5c0f06e13cf84042c9ad1d628ef3fd5aaffb116f1716b099e6ededb125e973a4a2c511bb6201e3a39d7710b2850c3418bdbeac792036b7524c5a5fc8746f52'
+            '193755b00a5baa4b879b8b190c70c46ed3d48e6cee9b10e81218f85b3ab00cad7f38559f217d297e2478296e3fbc780d7ae47019ff9549ee1b55c15b52db744a'
+            'fb7937481baa98acdd691a41f8f12a577bef4dc951bec998966aa0e775b80804c632c84d6889990a78f3175b600681a6be9a4149b0dcda8c0aca42b4bb3d295d'
+            '263c4c5e75ef8cb8ca2641c022dfaf8bd9222fadf68ed15120b0ae7dd9cc901a04ce2e55625d513a0995759c9d82dfbdc4c33d4751159124915d7404b1400e34'
+            '8f0d0a4881588e10681060d6006a6c65108a753c3106a1a710cf90f8dba8e52e6d6c10633f8ad19b763a2ab119ef98fddc6db4481262daf644c0206ac2ecd2d9'
+            'f424e218eea785a457a9f45d80a639c3a707676cd6b1a608e6c3745d94beefb3d9200a0c37a5c22bdd36cf955f48e9628d0e4f9b47a0631c1898b8c5116c6c41')
 
 
 create_links() {
@@ -36,6 +48,12 @@ prepare() {
     sh "${_pkg}.run" --extract-only
     cd "${_pkg}"
     bsdtar -xf nvidia-persistenced-init.tar.bz2
+
+    # Enable modeset and fbdev as default
+    # This avoids various issue, when Simplefb is used
+    # https://gitlab.archlinux.org/archlinux/packaging/packages/nvidia-utils/-/issues/14
+    # https://github.com/rpmfusion/nvidia-kmod/blob/master/make_modeset_default.patch
+    patch -Np1 < "$srcdir"/make-modeset-fbdev-default.patch -d "${srcdir}/${_pkg}/kernel"
 
     cd kernel
 
@@ -55,6 +73,54 @@ DEST_MODULE_LOCATION[4]="/kernel/drivers/video"' dkms.conf
 
     # Gift for linux-rt guys
     sed -i 's/NV_EXCLUDE_BUILD_MODULES/IGNORE_PREEMPT_RT_PRESENCE=1 NV_EXCLUDE_BUILD_MODULES/' dkms.conf
+
+    cd "$srcdir"/open-gpu-kernel-modules-${pkgver}
+    # Fix for https://bugs.archlinux.org/task/74886
+    patch -Np1 --no-backup-if-mismatch -i "$srcdir"/nvidia-open-gcc-ibt-sls.patch
+
+    # Enable modeset and fbdev as default
+    # This avoids various issue, when Simplefb is used
+    # https://gitlab.archlinux.org/archlinux/packaging/packages/nvidia-utils/-/issues/14
+    # https://github.com/rpmfusion/nvidia-kmod/blob/master/make_modeset_default.patch
+    patch -Np1 < "$srcdir"/make-modeset-fbdev-default.patch -d "${srcdir}/open-gpu-kernel-modules-${pkgver}/kernel-open"
+
+    # Patch by Nvidia to silence error messages until a real fix drops in 570.xx
+    # https://github.com/NVIDIA/open-gpu-kernel-modules/issues/716#issuecomment-2391898884
+    patch -Np1 --no-backup-if-mismatch -i "$srcdir"/silence-event-assert-until-570.patch
+
+    # Patch by Nvidia to fix HDMI names which are otherwise broken in the /proc/asound/NVidia/* ELD files
+    # Should hopefully ship with 570.xx
+    # https://github.com/NVIDIA/open-gpu-kernel-modules/pull/715
+    patch -Np1 --no-backup-if-mismatch -i "$srcdir"/fix-hdmi-names.patch
+
+    # Attempt to make this reproducible
+    sed -i "s/^HOSTNAME.*/HOSTNAME = echo archlinux"/ utils.mk
+    sed -i "s/^WHOAMI.*/WHOAMI = echo archlinux-builder"/ utils.mk
+    sed -i "s/^DATE.*/DATE = date -r version.mk"/ utils.mk
+
+    sed -i "s/__VERSION_STRING/${pkgver}/" kernel-open/dkms.conf
+    sed -i 's/__JOBS/`nproc`/' kernel-open/dkms.conf
+    sed -i 's/__EXCLUDE_MODULES//' kernel-open/dkms.conf
+    sed -i 's/__DKMS_MODULES//' kernel-open/dkms.conf
+    sed -i '$i\
+BUILT_MODULE_NAME[0]="nvidia"\
+BUILT_MODULE_LOCATION[0]="kernel-open"\
+DEST_MODULE_LOCATION[0]="/kernel/drivers/video"\
+BUILT_MODULE_NAME[1]="nvidia-uvm"\
+BUILT_MODULE_LOCATION[1]="kernel-open"\
+DEST_MODULE_LOCATION[1]="/kernel/drivers/video"\
+BUILT_MODULE_NAME[2]="nvidia-modeset"\
+BUILT_MODULE_LOCATION[2]="kernel-open"\
+DEST_MODULE_LOCATION[2]="/kernel/drivers/video"\
+BUILT_MODULE_NAME[3]="nvidia-drm"\
+BUILT_MODULE_LOCATION[3]="kernel-open"\
+DEST_MODULE_LOCATION[3]="/kernel/drivers/video"\
+BUILT_MODULE_NAME[4]="nvidia-peermem"\
+BUILT_MODULE_LOCATION[4]="kernel-open"\
+DEST_MODULE_LOCATION[4]="/kernel/drivers/video"' kernel-open/dkms.conf
+
+    # Clean version for later copying for DKMS
+    cp -r ../open-gpu-kernel-modules-${pkgver} "$srcdir"/open-gpu-kernel-modules-dkms
 }
 
 package_opencl-nvidia() {
@@ -74,23 +140,9 @@ package_opencl-nvidia() {
     ln -s nvidia-utils "${pkgdir}/usr/share/licenses/opencl-nvidia"
 }
 
-package_nvidia-dkms() {
-    pkgdesc="NVIDIA drivers - module sources"
-    depends=('dkms' "nvidia-utils=$pkgver" 'libglvnd')
-    provides=('NVIDIA-MODULE' 'nvidia')
-    conflicts=('NVIDIA-MODULE' 'nvidia')
-
-    cd ${_pkg}
-
-    install -dm 755 "${pkgdir}"/usr/src
-    cp -dr --no-preserve='ownership' kernel "${pkgdir}/usr/src/nvidia-${pkgver}"
-
-    install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 "${srcdir}/${_pkg}/LICENSE"
-}
-
 package_nvidia-utils() {
     pkgdesc="NVIDIA drivers utilities"
-    depends=('libglvnd' 'egl-wayland')
+    depends=('libglvnd' 'egl-wayland' 'egl-gbm')
     optdepends=('nvidia-settings: configuration tool'
                 'xorg-server: Xorg support'
                 'xorg-server-devel: nvidia-xconfig'
@@ -108,9 +160,13 @@ package_nvidia-utils() {
     # X driver
     install -Dm755 nvidia_drv.so "${pkgdir}/usr/lib/xorg/modules/drivers/nvidia_drv.so"
 
+    # Xorg
+    install -D -m755 libnvidia-egl-xcb.so.1.0.0  -t "${pkgdir}/usr/lib"
+    install -D -m755 libnvidia-egl-xlib.so.1.0.0 -t "${pkgdir}/usr/lib"
+    install -D -m644 20_nvidia_xcb.json  -t "${pkgdir}/usr/share/egl/egl_external_platform.d"
+    install -D -m644 20_nvidia_xlib.json -t "${pkgdir}/usr/share/egl/egl_external_platform.d"
+
     # Wayland/GBM
-    install -Dm755 libnvidia-egl-gbm.so.1* -t "${pkgdir}/usr/lib/"
-    install -Dm644 15_nvidia_gbm.json "${pkgdir}/usr/share/egl/egl_external_platform.d/15_nvidia_gbm.json"
     mkdir -p "${pkgdir}/usr/lib/gbm"
     ln -sr "${pkgdir}/usr/lib/libnvidia-allocator.so.${pkgver}" "${pkgdir}/usr/lib/gbm/nvidia-drm_gbm.so"
 
@@ -183,12 +239,6 @@ package_nvidia-utils() {
     install -Dm755 _nvngx.dll "${pkgdir}/usr/lib/nvidia/wine/_nvngx.dll"
     install -Dm755 nvngx.dll "${pkgdir}/usr/lib/nvidia/wine/nvngx.dll"
 
-    # Xorg
-    install -D -m755 libnvidia-egl-xcb.so.1  -t "${pkgdir}/usr/lib"
-    install -D -m755 libnvidia-egl-xlib.so.1 -t "${pkgdir}/usr/lib"
-    install -D -m644 20_nvidia_xcb.json  -t "${pkgdir}/usr/share/egl/egl_external_platform.d"
-    install -D -m644 20_nvidia_xlib.json -t "${pkgdir}/usr/share/egl/egl_external_platform.d"
-
     # Optical flow
     install -Dm755 "libnvidia-opticalflow.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-opticalflow.so.${pkgver}"
 
@@ -260,5 +310,20 @@ package_nvidia-utils() {
     echo "blacklist nouveau" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modprobe.d/${pkgname}.conf"
     echo "nvidia-uvm" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules-load.d/${pkgname}.conf"
 
+    # Enable PreserveVideoMemoryAllocations and TemporaryFilePath
+    # Fixes Wayland Sleep, when restoring the session
+    install -Dm644 "${srcdir}/nvidia-sleep.conf" "${pkgdir}/usr/lib/modprobe.d/nvidia-sleep.conf"
+
     create_links
+}
+
+package_nvidia-open() {
+    depends+=('dkms' 'linux-headers')
+    conflicts=('nvidia-open' 'NVIDIA-MODULE')
+    provides=('nvidia-open' 'NVIDIA-MODULE')
+
+    install -dm 755 "${pkgdir}"/usr/src
+    # cp -dr --no-preserve='ownership' kernel-open "${pkgdir}/usr/src/nvidia-$pkgver"
+    cp -dr --no-preserve='ownership' open-gpu-kernel-modules-dkms "${pkgdir}/usr/src/nvidia-$pkgver"
+    mv "${pkgdir}/usr/src/nvidia-$pkgver/kernel-open/dkms.conf" "${pkgdir}/usr/src/nvidia-$pkgver/dkms.conf"
 }
