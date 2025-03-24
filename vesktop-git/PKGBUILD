@@ -1,37 +1,34 @@
-_electronversion=29
 pkgname=vesktop-git
-pkgver=v1.5.2.r1.gcb55cf4
+pkgver=v1.5.5.r14.g156ba6a
 pkgrel=1
 pkgdesc="A custom Discord App aiming to give you better performance and improve linux support"
 arch=('any')
 url="https://vencord.dev"
 license=("GPL-3.0-only")
-depends=("electron$_electronversion")
-makedepends=(
-	"git"
-	"pnpm"
-)
+depends=("electron")
+makedepends=("git"
+             "pnpm")
 source=("git+https://github.com/Vencord/Vesktop.git")
 sha256sums=('SKIP')
 
 pkgver() {
-	cd Vesktop
-	git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+	git -C Vesktop describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 build() {
-	cd Vesktop
-	pnpm i
-	pnpm package:dir
+	export PNPM_HOME="$srcdir/pnpm"
+
+	pnpm -C Vesktop install
+	pnpm -C Vesktop package:dir -c.electronDist=/usr/lib/electron -c.electronVersion=$(tail /usr/lib/electron/version)
 }
 
 package() {
 	install -Dt "$pkgdir/usr/share/vesktop/" "Vesktop/dist/linux-unpacked/resources/app.asar"
 	install -Dm644 "Vesktop/static/icon.png" "$pkgdir/usr/share/pixmaps/vesktop.png"
 
-	echo -ne "#!/usr/bin/bash\nelectron$_electronversion /usr/share/vesktop/app.asar \"\$@\"\nexit \$?" > execvesktop
+	echo -ne "#!/usr/bin/bash\nelectron /usr/share/vesktop/app.asar \"\$@\"" > execvesktop
 	install -Dm755 "execvesktop" "$pkgdir/usr/bin/vesktop"
 
 	echo -ne "[Desktop Entry]\nName=Vesktop\nExec=vesktop %U\nTerminal=false\nType=Application\nIcon=vesktop\nStartupWMClass=Vesktop\nGenericName=Internet Messenger\nCategories=Network;\nKeywords=discord;vencord;electron;chat;" > vesktop.desktop
-	install -Dm755 "vesktop.desktop" "$pkgdir/usr/share/applications/vesktop.desktop"
+	install -Dm644 "vesktop.desktop" "$pkgdir/usr/share/applications/vesktop.desktop"
 }
