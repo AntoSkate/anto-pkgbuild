@@ -8,6 +8,7 @@ license=('custom')
 options=('!strip')
 makedepends=('patchelf')
 _pkg="NVIDIA-Linux-x86_64-${pkgver}"
+_pkg_open="NVIDIA-kernel-module-source-${pkgver}"
 source=('nvidia-drm-outputclass.conf'
         'nvidia-utils.sysusers'
         'nvidia.rules'
@@ -15,8 +16,9 @@ source=('nvidia-drm-outputclass.conf'
         'systemd-suspend-override.conf'
         'nvidia-sleep.conf'
         "https://us.download.nvidia.com/XFree86/Linux-x86_64/${pkgver}/${_pkg}.run"
-        "$pkgname-$pkgver.tar.gz::https://github.com/NVIDIA/open-gpu-kernel-modules/archive/refs/tags/${pkgver}.tar.gz"
+        "https://download.nvidia.com/XFree86/NVIDIA-kernel-module-source/${_pkg_open}.tar.xz"
         0001-Enable-atomic-kernel-modesetting-by-default.patch
+        0002-CFLAGS-Set-std-gnu17-for-all-compilation-flags.patch
         0003-Add-IBT-support.patch)
 
 sha512sums=('de7116c09f282a27920a1382df84aa86f559e537664bb30689605177ce37dc5067748acf9afd66a3269a6e323461356592fdfc624c86523bf105ff8fe47d3770'
@@ -26,8 +28,9 @@ sha512sums=('de7116c09f282a27920a1382df84aa86f559e537664bb30689605177ce37dc50677
             '55def6319f6abb1a4ccd28a89cd60f1933d155c10ba775b8dfa60a2dc5696b4b472c14b252dc0891f956e70264be87c3d5d4271e929a4fc4b1a68a6902814cee'
             'c7fea39d11565f05a507d3aded4e9ea506ef9dbebf313e0fc8d6ebc526af3f9d6dec78af9d6c4456c056310f98911c638706bccdd9926d07f492615569430455'
             '0354f4d46a2de8be670a3fa58ec255b8673c40c51fea9ca594aa3ddab936b50efb91cecbb93f14ac4a8ed87e7c3e101b4d643721602d22135f9259dad94a5c12'
-            '27985e4891d2c417fb8862ed6866ebd7901eea397011817a02b46a55f4f864bd21152f3814e85e7f0f4817262cd752706c14e9b35f2a19acedc5cb84b946f87f'
+            'c25f449b739168b2e1a7113e3c437455f646f37a95274605e1b06ea36e83fe6f74325fbb09df975092c8bbd492e089b80686162412720c0b1ea14e7551ef441e'
             '0bb89b9037f0baa9aae1ff8e70c9c93896f03fd0cc380eea4b0dc094a6991c3ad6738c9fbbaa42d8b5a544f77dc91c0e6401b1501c5970c576d5efbc0de8dd34'
+            '6814990f8046759d35f724ac9114d7fa284710fd1ad8cca7e1a861ea54a72fe4f67b5614f157a911f5ecfa0c964fa989edc61c85b1cfef6428e0cd7cdeea856e'
             '42f621179d4fd9bf608f0d84b9019f5a5fdf5d92d68d22ce9b9a9add1cad1c90dcb3764db68e0b9bc7e902bb6b955c59563ea6d4f39f2e39a340387e4d5deb82')
 
 
@@ -44,50 +47,55 @@ create_links() {
 prepare() {
     sh "${_pkg}.run" --extract-only
     cd "${_pkg}"
-    bsdtar -xf nvidia-persistenced-init.tar.bz2 
+    bsdtar -xf nvidia-persistenced-init.tar.bz2
 
-    cd "$srcdir"/open-gpu-kernel-modules-${pkgver}
-
-    # Enable modeset and fbdev as default
+    # Enable modeset by default
     # This avoids various issue, when Simplefb is used
     # https://gitlab.archlinux.org/archlinux/packaging/packages/nvidia-utils/-/issues/14
     # https://github.com/rpmfusion/nvidia-kmod/blob/master/make_modeset_default.patch
-    patch -Np1 < "$srcdir"/0001-Enable-atomic-kernel-modesetting-by-default.patch -d "${srcdir}/open-gpu-kernel-modules-${pkgver}/kernel-open"
+    patch -Np1 -i "${srcdir}/0001-Enable-atomic-kernel-modesetting-by-default.patch" -d "${srcdir}/${_pkg_open}/kernel-open"
+    # GCC 15
+    patch -Np1 -i "${srcdir}/0002-CFLAGS-Set-std-gnu17-for-all-compilation-flags.patch" -d "${srcdir}/${_pkg_open}/kernel-open"
 
-    # Fix for https://bugs.archlinux.org/task/74886
-    patch -Np1 --no-backup-if-mismatch -i "$srcdir"/0003-Add-IBT-support.patch
+    patch -Np1 -i "${srcdir}/0003-Add-IBT-support.patch" -d "${srcdir}/${_pkg_open}/"
 
-    # Attempt to make this reproducible
-    sed -i "s/^HOSTNAME.*/HOSTNAME = echo archlinux"/ utils.mk
-    sed -i "s/^WHOAMI.*/WHOAMI = echo archlinux-builder"/ utils.mk
-    sed -i "s/^DATE.*/DATE = date -r version.mk"/ utils.mk
 
-    sed -i "s/__VERSION_STRING/${pkgver}/" kernel-open/dkms.conf
-    sed -i 's/__JOBS/`nproc`/' kernel-open/dkms.conf
-    sed -i 's/__EXCLUDE_MODULES//' kernel-open/dkms.conf
-    sed -i 's/__DKMS_MODULES//' kernel-open/dkms.conf
-    sed -i '$i\
+
+    # Attempt to make builds reproducible
+    sed -i "s/^  HOSTNAME.*/  HOSTNAME = echo archlinux/" "${srcdir}/${_pkg_open}/utils.mk"
+    sed -i "s/^WHOAMI.*/WHOAMI = echo archlinux-builder/" "${srcdir}/${_pkg_open}/utils.mk"
+    sed -i "s/^DATE.*/DATE = date -r version.mk/" "${srcdir}/${_pkg_open}/utils.mk"
+
+    shopt -s globstar
+    for conf in "${srcdir}"/**/dkms.conf; do
+        sed -i "s/__VERSION_STRING/${pkgver}/" "$conf"
+        sed -i 's/__JOBS/`nproc`/' "$conf"
+        sed -i 's/__EXCLUDE_MODULES//' "$conf"
+        sed -i 's/__DKMS_MODULES//' "$conf"
+        sed -i 's/NV_EXCLUDE_BUILD_MODULES/IGNORE_PREEMPT_RT_PRESENCE=1 NV_EXCLUDE_BUILD_MODULES/' "$conf"
+        sed -i '$i\
 BUILT_MODULE_NAME[0]="nvidia"\
-BUILT_MODULE_LOCATION[0]="kernel-open"\
 DEST_MODULE_LOCATION[0]="/kernel/drivers/video"\
 BUILT_MODULE_NAME[1]="nvidia-uvm"\
-BUILT_MODULE_LOCATION[1]="kernel-open"\
 DEST_MODULE_LOCATION[1]="/kernel/drivers/video"\
 BUILT_MODULE_NAME[2]="nvidia-modeset"\
-BUILT_MODULE_LOCATION[2]="kernel-open"\
 DEST_MODULE_LOCATION[2]="/kernel/drivers/video"\
 BUILT_MODULE_NAME[3]="nvidia-drm"\
-BUILT_MODULE_LOCATION[3]="kernel-open"\
 DEST_MODULE_LOCATION[3]="/kernel/drivers/video"\
 BUILT_MODULE_NAME[4]="nvidia-peermem"\
-BUILT_MODULE_LOCATION[4]="kernel-open"\
-DEST_MODULE_LOCATION[4]="/kernel/drivers/video"' kernel-open/dkms.conf
+DEST_MODULE_LOCATION[4]="/kernel/drivers/video"' "$conf"
+    done
+    shopt -u globstar
 
-    # Gift for linux-rt guys
-    sed -i 's/NV_EXCLUDE_BUILD_MODULES/IGNORE_PREEMPT_RT_PRESENCE=1 NV_EXCLUDE_BUILD_MODULES/' kernel-open/dkms.conf
+    # Additional parameters for open kernel modules
+    cat <<EOF >>"${srcdir}/${_pkg_open}/kernel-open/dkms.conf"
+BUILT_MODULE_LOCATION[0]="kernel-open"
+BUILT_MODULE_LOCATION[1]="kernel-open"
+BUILT_MODULE_LOCATION[2]="kernel-open"
+BUILT_MODULE_LOCATION[3]="kernel-open"
+BUILT_MODULE_LOCATION[4]="kernel-open"
+EOF
 
-    # Clean version for later copying for DKMS
-    cp -r ../open-gpu-kernel-modules-${pkgver} "$srcdir"/open-gpu-kernel-modules-dkms
 }
 
 package_nvidia-utils() {
@@ -168,6 +176,7 @@ package_nvidia-utils() {
 
     # NVVM Compiler library loaded by the CUDA driver to do JIT link-time-optimization
     install -Dm644 "libnvidia-nvvm.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-nvvm.so.${pkgver}"
+    install -Dm755 "libnvidia-nvvm70.so.4" "${pkgdir}/usr/lib/libnvidia-nvvm70.so.4"
 
     # PTX JIT Compiler (Parallel Thread Execution (PTX) is a pseudo-assembly language for CUDA)
     install -Dm755 "libnvidia-ptxjitcompiler.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-ptxjitcompiler.so.${pkgver}"
@@ -195,6 +204,9 @@ package_nvidia-utils() {
 
     # Sandboxhelper
     install -Dm755 "libnvidia-sandboxutils.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-sandboxutils.so.${pkgver}"
+
+    # Present Helper
+    install -Dm755 "libnvidia-present.so.${pkgver}" "${pkgdir}/usr/lib/libnvidia-present.so.${pkgver}"
 
     # Debug
     install -Dm755 nvidia-debugdump "${pkgdir}/usr/bin/nvidia-debugdump"
@@ -227,8 +239,8 @@ package_nvidia-utils() {
     sed -i 's/__USER__/nvidia-persistenced/' "${pkgdir}/usr/lib/systemd/system/nvidia-persistenced.service"
 
     # application profiles
-    install -Dm644 nvidia-application-profiles-${pkgver}-rc "${pkgdir}/usr/share/nvidia/nvidia-application-profiles-${pkgver}-rc"
-    install -Dm644 nvidia-application-profiles-${pkgver}-key-documentation "${pkgdir}/usr/share/nvidia/nvidia-application-profiles-${pkgver}-key-documentation"
+    install -Dm644 "nvidia-application-profiles-${pkgver}-rc" "${pkgdir}/usr/share/nvidia/nvidia-application-profiles-${pkgver}-rc"
+    install -Dm644 "nvidia-application-profiles-${pkgver}-key-documentation" "${pkgdir}/usr/share/nvidia/nvidia-application-profiles-${pkgver}-key-documentation"
 
     install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/nvidia-utils/LICENSE"
     install -Dm644 README.txt "${pkgdir}/usr/share/doc/nvidia/README"
@@ -241,12 +253,12 @@ package_nvidia-utils() {
     install -Dm755 systemd/system-sleep/nvidia "${pkgdir}/usr/lib/systemd/system-sleep/nvidia"
     install -Dm755 systemd/nvidia-sleep.sh "${pkgdir}/usr/bin/nvidia-sleep.sh"
     install -Dm755 nvidia-powerd "${pkgdir}/usr/bin/nvidia-powerd"
-    install -Dm644 nvidia-dbus.conf "${pkgdir}"/usr/share/dbus-1/system.d/nvidia-dbus.conf
-    install -Dm644 "${srcdir}"/systemd-homed-override.conf "${pkgdir}"/usr/lib/systemd/system/systemd-homed.service.d/10-nvidia-no-freeze-session.conf
-    install -Dm644 "${srcdir}"/systemd-suspend-override.conf "${pkgdir}"/usr/lib/systemd/system/systemd-suspend.service.d/10-nvidia-no-freeze-session.conf
-    install -Dm644 "${srcdir}"/systemd-suspend-override.conf "${pkgdir}"/usr/lib/systemd/system/systemd-suspend-then-hibernate.service.d/10-nvidia-no-freeze-session.conf
-    install -Dm644 "${srcdir}"/systemd-suspend-override.conf "${pkgdir}"/usr/lib/systemd/system/systemd-hibernate.service.d/10-nvidia-no-freeze-session.conf
-    install -Dm644 "${srcdir}"/systemd-suspend-override.conf "${pkgdir}"/usr/lib/systemd/system/systemd-hybrid-sleep.service.d/10-nvidia-no-freeze-session.conf
+    install -Dm644 nvidia-dbus.conf "${pkgdir}/usr/share/dbus-1/system.d/nvidia-dbus.conf"
+    install -Dm644 "${srcdir}/systemd-homed-override.conf" "${pkgdir}/usr/lib/systemd/system/systemd-homed.service.d/10-nvidia-no-freeze-session.conf"
+    install -Dm644 "${srcdir}/systemd-suspend-override.conf" "${pkgdir}/usr/lib/systemd/system/systemd-suspend.service.d/10-nvidia-no-freeze-session.conf"
+    install -Dm644 "${srcdir}/systemd-suspend-override.conf" "${pkgdir}/usr/lib/systemd/system/systemd-suspend-then-hibernate.service.d/10-nvidia-no-freeze-session.conf"
+    install -Dm644 "${srcdir}/systemd-suspend-override.conf" "${pkgdir}/usr/lib/systemd/system/systemd-hibernate.service.d/10-nvidia-no-freeze-session.conf"
+    install -Dm644 "${srcdir}/systemd-suspend-override.conf" "${pkgdir}/usr/lib/systemd/system/systemd-hybrid-sleep.service.d/10-nvidia-no-freeze-session.conf"
 
     # distro specific files must be installed in /usr/share/X11/xorg.conf.d
     install -Dm644 "${srcdir}/nvidia-drm-outputclass.conf" "${pkgdir}/usr/share/X11/xorg.conf.d/10-nvidia-drm-outputclass.conf"
@@ -275,10 +287,9 @@ package_nvidia-open() {
   conflicts=('nvidia-open' 'NVIDIA-MODULE')
   provides=('nvidia-open' 'NVIDIA-MODULE')
 
-  install -dm 755 "${pkgdir}"/usr/src
-  # cp -dr --no-preserve='ownership' kernel-open "${pkgdir}/usr/src/nvidia-$pkgver"
-  cp -dr --no-preserve='ownership' open-gpu-kernel-modules-dkms "${pkgdir}/usr/src/nvidia-$pkgver"
+  install -dm 755 "${pkgdir}/usr/src"
+  cp -dr --no-preserve='ownership' "${srcdir}/${_pkg_open}" "${pkgdir}/usr/src/nvidia-$pkgver"
   mv "${pkgdir}/usr/src/nvidia-$pkgver/kernel-open/dkms.conf" "${pkgdir}/usr/src/nvidia-$pkgver/dkms.conf"
 
-  install -Dm644 open-gpu-kernel-modules-${pkgver}/COPYING "$pkgdir"/usr/share/licenses/${pkgname}/LICENSE
+  install -Dm644 "${srcdir}/${_pkg_open}/COPYING" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
