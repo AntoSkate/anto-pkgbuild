@@ -1,5 +1,5 @@
 pkgname="eden-git"
-pkgver=0.0.2.pre.alpha.r253.g6fd10fd85e
+pkgver=0.0.3.rc3.r49.g1c3ca17cfb
 pkgrel=1
 pkgdesc="Experimental open-source emulator for the Nintendo Switch"
 arch=('x86_64')
@@ -34,104 +34,11 @@ makedepends=(boost
 	     wireless_tools)
 provides=(eden)
 conflicts=(eden)
-source=("git+https://git.eden-emu.dev/eden-emu/eden.git"
-	"git+https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git"
-	"git+https://github.com/yhirose/cpp-httplib.git"
-	"git+https://github.com/arun11299/cpp-jwt.git"
-	"git+https://github.com/mozilla/cubeb.git"
-	"git+https://github.com/arsenm/sanitizers-cmake.git"
-	"git+https://github.com/mozilla/cubeb-coreaudio-rs.git"
-	"git+https://github.com/mozilla/cubeb-pulse-rs.git"
-	"git+https://github.com/boostorg/headers.git"
-	"git+https://github.com/FFmpeg/FFmpeg.git"
-	"git+https://github.com/azahar-emu/mcl.git"
-	"git+https://github.com/Lizzie841/unordered_dense.git"
-	"git+https://github.com/zyantific/zycore-c.git"
-	"git+https://github.com/zyantific/zydis.git"	
-	"git+https://github.com/brofield/simpleini.git"
-	"git+https://github.com/lat9nq/tzdb_to_nx.git"
-	"git+https://github.com/eggert/tz.git"
-	"git+https://github.com/herumi/xbyak.git")
-sha256sums=('SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP')
-
-prepare() {
-	cd eden
-	git submodule init
-	git config submodule.SDL.update none
-	git config submodule.Vulkan-Headers.update none
-	git config submodule.Vulkan-Utility-Libraries.update none
-	git config submodule.VulkanMemoryAllocator.url "$srcdir/VulkanMemoryAllocator"
-	git config submodule.breakpad.update none
-	git config submodule.cpp-httplib.url "$srcdir/cpp-httplib"
-	git config submodule.cpp-jwt.url "$srcdir/cpp-jwt"
-	git config submodule.cubeb.url "$srcdir/cubeb"
-	git config submodule.discord-rpc.update none
-	git config submodule.enet.update none
-	git config submodule.externals/boost-headers.url "$srcdir/headers"
-	git config submodule.libadrenotools.update none
-	git config submodule.libusb.update none
-	git config submodule.oaknut.update none
-	git config submodule.oboe.update none
-	git config submodule.opus.update none
-	git config submodule.simpleini.url "$srcdir/simpleini"
-	git config submodule.tzdb_to_nx.url "$srcdir/tzdb_to_nx"
-	git config submodule.vcpkg.update none
-	git config submodule.xbyak.url "$srcdir/xbyak"
-	git -c protocol.file.allow=always submodule update
-
-	pushd externals/cubeb
-	git config submodule.cmake/sanitizers-cmake.url "$srcdir/sanitizers-cmake"
-	git config submodule.googletest.update none
-	#git config submodule.src/cubeb-coreaudio-rs.url "$srcdir/cubeb-coreaudio-rs"
-	rm -r src/cubeb-coreaudio-rs
-	cp -r $srcdir/cubeb-coreaudio-rs src/cubeb-coreaudio-rs
-	git config submodule.src/cubeb-pulse-rs.url "$srcdir/cubeb-pulse-rs"
-	git -c protocol.file.allow=always submodule update
-	popd	
-
-	pushd externals/dynarmic
-	git config submodule.biscuit.update none
-	git config submodule.catch.update none
-	git config submodule.fmt.update none
-	git config submodule.mcl.url "$srcdir/mcl"
-	git config submodule.oaknut.update none
-	git config submodule.unordered_dense.url "$srcdir/unordered_dense"
-	git config submodule.xbyak.update none
-	git config submodule.zycore.url "$srcdir/zycore-c"
-	git config submodule.zydis.url "$srcdir/zydis"
-	git -c protocol.file.allow=always submodule update
-	popd
-
-	pushd externals/dynarmic/externals/zydis
-	git config submodule.dependencies/zycore.url "$srcdir/zycore-c"
-	git -c protocol.file.allow=always submodule update
-	popd	
-
-	pushd externals/nx_tzdb/tzdb_to_nx
-	git config submodule.externals/tz/tz.url "$srcdir/tz"
-	git -c protocol.file.allow=always submodule update
-	popd
-}
+source=("git+https://git.eden-emu.dev/eden-emu/eden.git")
+sha256sums=('SKIP')
 
 pkgver() {
-	git -C eden describe --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+	git -C eden describe --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 build() {
@@ -145,6 +52,10 @@ build() {
 	#       LDFLAGS+=" -fuse-ld=lld"
 
 	local cmake_options=(
+		-DCMAKE_DISABLE_FIND_PACKAGE_httplib=ON \
+		-DBUILD_TESTING=OFF \
+		-DDYNARMIC_TESTS=OFF \
+		-DENABLE_CUBEB=OFF \
 		-DENABLE_OPENGL=OFF \
 		-DENABLE_WEB_SERVICE=ON \
 		-DSIRIT_USE_SYSTEM_SPIRV_HEADERS=ON \	
@@ -157,7 +68,6 @@ build() {
 		-DYUZU_USE_BUNDLED_FFMPEG=OFF \
 		-DYUZU_USE_BUNDLED_QT=OFF \
 		-DYUZU_USE_BUNDLED_SDL2=OFF \
-		-DYUZU_USE_BUNDLED_VCPKG=OFF \
 		-DYUZU_USE_EXTERNAL_SDL2=OFF \
 		-DYUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS=OFF \
 		-DYUZU_USE_EXTERNAL_VULKAN_HEADERS=OFF \
