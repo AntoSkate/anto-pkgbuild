@@ -1,5 +1,5 @@
 pkgname=vesktop-git
-pkgver=v1.5.5.r14.g156ba6a
+pkgver=v1.5.8.r10.g8cc34e2
 pkgrel=1
 pkgdesc="A custom Discord App aiming to give you better performance and improve linux support"
 arch=('any')
@@ -24,7 +24,7 @@ build() {
 
 package() {
 	install -Dt "$pkgdir/usr/share/vesktop/" "Vesktop/dist/linux-unpacked/resources/app.asar"
-	install -Dm644 "Vesktop/static/icon.png" "$pkgdir/usr/share/pixmaps/vesktop.png"
+	install -Dm644 "Vesktop/build/icon.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/vesktop.svg"
 
 	echo -ne "#!/usr/bin/bash\nelectron /usr/share/vesktop/app.asar \"\$@\"" > execvesktop
 	install -Dm755 "execvesktop" "$pkgdir/usr/bin/vesktop"
