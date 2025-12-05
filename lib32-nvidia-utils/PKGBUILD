@@ -1,16 +1,12 @@
-# Maintainer: Sven-Hendrik Haase <svenstaro@archlinux.org>
-# Maintainer: Peter Jung <ptr1337@archlinux.org
-# Contributor: Thomas Baechler <thomas@archlinux.org>
-# Contributor: James Rayner <iphitus@gmail.com>
-
 _pkgbasename=nvidia-utils
-pkgname=lib32-nvidia-utils
-pkgver=575.51.02
+pkgname='lib32-nvidia-utils'
+pkgver=590.44.01
 pkgrel=1
 arch=('x86_64')
 url="http://www.nvidia.com/"
 pkgdesc="NVIDIA drivers utilities (32-bit)"
 depends=('lib32-zlib' 'lib32-gcc-libs' 'lib32-libglvnd' "nvidia-utils=${pkgver}")
+optdepends=('lib32-opencl-nvidia')
 conflicts=('lib32-nvidia-libgl')
 provides=('lib32-vulkan-driver' 'lib32-opengl-driver' 'lib32-nvidia-libgl')
 replaces=('lib32-nvidia-libgl')
@@ -19,7 +15,7 @@ license=('custom')
 options=('!strip')
 _pkg="NVIDIA-Linux-x86_64-${pkgver}"
 source=("https://us.download.nvidia.com/XFree86/Linux-x86_64/${pkgver}/${_pkg}.run")
-sha512sums=('0354f4d46a2de8be670a3fa58ec255b8673c40c51fea9ca594aa3ddab936b50efb91cecbb93f14ac4a8ed87e7c3e101b4d643721602d22135f9259dad94a5c12')
+sha512sums=('8fb0cd0b09b3b997029e97314fb8b4f63a5b567c17d99b63321e72b3e002c5e912694c5049babae80e7eafdbcc966d46e50bb942ddefe3e9da28623b5b119005')
 
 create_links() {
     # create soname links
@@ -35,7 +31,7 @@ build() {
     sh ${_pkg}.run --extract-only
 }
 
-package_lib32-nvidia-utils() {
+package() {
     cd "${_pkg}"/32
 
     # Check http://us.download.nvidia.com/XFree86/Linux-x86_64/${pkgver}/README/installedcomponents.html
