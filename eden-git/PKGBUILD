@@ -1,5 +1,5 @@
 pkgname="eden-git"
-pkgver=0.0.3.rc3.r62.g3c9982da5d
+pkgver=0.1.0.rc1.r6.g8440c20
 pkgrel=1
 pkgdesc="Experimental open-source emulator for the Nintendo Switch"
 arch=('x86_64')
@@ -7,49 +7,53 @@ url="https://eden-emu.dev"
 license=(GPL-3.0-or-later)
 depends=(enet
          ffmpeg
+         fmt
          lz4
+         mbedtls
          nlohmann-json
          openssl
          opus
          qt6-base
          qt6-multimedia
-         qt6-wayland
          qt6-webengine
-	 quazip-qt6
+         quazip-qt6
          sdl2
          zlib
          zstd)
 makedepends=(boost
              catch2
              cmake
-             fmt
              git
              glslang
              ninja
              pkgconf
              spirv-headers
-	     spirv-tools
+             spirv-tools
              vulkan-headers
-	     vulkan-utility-libraries
-	     wireless_tools)
+             vulkan-utility-libraries
+             wireless_tools)
 provides=(eden)
 conflicts=(eden)
 source=("git+https://git.eden-emu.dev/eden-emu/eden.git")
 sha256sums=('SKIP')
 
 pkgver() {
-	git -C eden describe --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+	git -C eden describe --long --tags --abbrev=7 | sed 's/^v//;s/.git//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 build() {
 	# Build with GCC for now since it optimizes better
 	#export CC="clang" \
-	#       CXX="clang++" \
+	#       CXX="clang++"
 	#       CFLAGS=${CFLAGS//-flto=auto/-flto=thin} \
 	#       CXXFLAGS=${CXXFLAGS//-flto=auto/-flto=thin} \
+	#       LDFLAGS=${LDFLAGS//-flto=auto/-flto=thin} \
 	#       CFLAGS+=" -w" \
 	#       CXXFLAGS+=" -w" \
 	#       LDFLAGS+=" -fuse-ld=lld"
+
+	export CFLAGS+=" -w" \
+	       CXXFLAGS+=" -w"
 
 	local cmake_options=(
 		-DBUILD_TESTING=OFF \
@@ -57,32 +61,24 @@ build() {
 		-DDYNARMIC_TESTS=OFF \
 		-DENABLE_CUBEB=OFF \
 		-DENABLE_OPENGL=OFF \
-		-DENABLE_WEB_SERVICE=ON \
+		-DENABLE_QT_UPDATE_CHECKER=OFF \
+		-DENABLE_WEB_SERVICE=OFF \
 		-DSIRIT_USE_SYSTEM_SPIRV_HEADERS=ON \
-		-DYUZU_CHECK_SUBMODULES=OFF \
 		-DYUZU_CMD=OFF \
 		-DYUZU_DOWNLOAD_TIME_ZONE_DATA=ON \
 		-DYUZU_ENABLE_LTO=OFF \
-		-DYUZU_ENABLE_PORTABLE=OFF \
 		-DYUZU_ROOM=OFF \
 		-DYUZU_TESTS=OFF \
 		-DYUZU_USE_BUNDLED_FFMPEG=OFF \
 		-DYUZU_USE_BUNDLED_QT=OFF \
 		-DYUZU_USE_BUNDLED_SDL2=OFF \
 		-DYUZU_USE_EXTERNAL_SDL2=OFF \
-		-DYUZU_USE_EXTERNAL_VULKAN_HEADERS=OFF \
-		-DYUZU_USE_EXTERNAL_VULKAN_SPIRV_TOOLS=OFF \
-		-DYUZU_USE_EXTERNAL_VULKAN_UTILITY_LIBRARIES=OFF \
 		-DYUZU_USE_FASTER_LD=OFF \
 		-DYUZU_USE_QT_MULTIMEDIA=ON \
 		-DYUZU_USE_QT_WEB_ENGINE=ON \
 		-DSimpleIni_FORCE_BUNDLED=ON \
 		-DVulkanMemoryAllocator_FORCE_BUNDLED=ON \
-		-DZycore_FORCE_BUNDLED=ON \
-		-DZydis_FORCE_BUNDLED=ON \
-		-Dcpp-jwt_FORCE_BUNDLED=ON \
-		-Dhttplib_FORCE_BUNDLED=ON \
-		-Dmbedtls_FORCE_BUNDLED=ON \
+		-Dfrozen_FORCE_BUNDLED=ON \	
 		-Dmcl_FORCE_BUNDLED=ON \
 		-Dnx_tzdb_FORCE_BUNDLED=ON \
 		-Dsirit_FORCE_BUNDLED=ON \
