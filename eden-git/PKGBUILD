@@ -1,5 +1,5 @@
 pkgname="eden-git"
-pkgver=0.1.0.rc1.r6.g8440c20
+pkgver=0.1.1.r49.ga56b8d3
 pkgrel=1
 pkgdesc="Experimental open-source emulator for the Nintendo Switch"
 arch=('x86_64')
@@ -34,8 +34,14 @@ makedepends=(boost
              wireless_tools)
 provides=(eden)
 conflicts=(eden)
-source=("git+https://git.eden-emu.dev/eden-emu/eden.git")
+source=("eden::git+https://github.com/eden-emulator/mirror.git#branch=master")
 sha256sums=('SKIP')
+
+#prepare() {
+#	cd eden
+#	curl https://git.eden-emu.dev/eden-emu/eden/pulls/2862.patch -o ../fs_external_dlcupdates.patch
+#	patch -Np1 -i ../fs_external_dlcupdates.patch
+#}
 
 pkgver() {
 	git -C eden describe --long --tags --abbrev=7 | sed 's/^v//;s/.git//;s/\([^-]*-g\)/r\1/;s/-/./g'
@@ -52,6 +58,8 @@ build() {
 	#       CXXFLAGS+=" -w" \
 	#       LDFLAGS+=" -fuse-ld=lld"
 
+	# -DENABLE_WEB_SERVICE on for now to include httplib that gives error otherwise; -Dcpp-jwt_FORCE_BUNDLED and -Dhttplib_FORCE_BUNDLED are also on for now
+
 	export CFLAGS+=" -w" \
 	       CXXFLAGS+=" -w"
 
@@ -60,10 +68,15 @@ build() {
 		-DCPMUTIL_FORCE_SYSTEM=ON \
 		-DDYNARMIC_TESTS=OFF \
 		-DENABLE_CUBEB=OFF \
+		-DENABLE_LTO=OFF \
 		-DENABLE_OPENGL=OFF \
-		-DENABLE_QT_UPDATE_CHECKER=OFF \
-		-DENABLE_WEB_SERVICE=OFF \
+		-DENABLE_UPDATE_CHECKER=OFF \
+		-DENABLE_WEB_SERVICE=ON \
+		-DNIGHTLY_BUILD=OFF \
 		-DSIRIT_USE_SYSTEM_SPIRV_HEADERS=ON \
+		-DUSE_CCACHE=OFF \
+		-DUSE_DISCORD_PRESENCE=OFF \
+		-DUSE_FASTER_LINKER=OFF \
 		-DYUZU_CMD=OFF \
 		-DYUZU_DOWNLOAD_TIME_ZONE_DATA=ON \
 		-DYUZU_ENABLE_LTO=OFF \
@@ -73,12 +86,13 @@ build() {
 		-DYUZU_USE_BUNDLED_QT=OFF \
 		-DYUZU_USE_BUNDLED_SDL2=OFF \
 		-DYUZU_USE_EXTERNAL_SDL2=OFF \
-		-DYUZU_USE_FASTER_LD=OFF \
 		-DYUZU_USE_QT_MULTIMEDIA=ON \
 		-DYUZU_USE_QT_WEB_ENGINE=ON \
 		-DSimpleIni_FORCE_BUNDLED=ON \
 		-DVulkanMemoryAllocator_FORCE_BUNDLED=ON \
-		-Dfrozen_FORCE_BUNDLED=ON \	
+		-Dcpp-jwt_FORCE_BUNDLED=ON \
+		-Dfrozen_FORCE_BUNDLED=ON \
+		-Dhttplib_FORCE_BUNDLED=ON \
 		-Dmcl_FORCE_BUNDLED=ON \
 		-Dnx_tzdb_FORCE_BUNDLED=ON \
 		-Dsirit_FORCE_BUNDLED=ON \
