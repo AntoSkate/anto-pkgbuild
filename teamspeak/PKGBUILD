@@ -8,7 +8,7 @@ license=(custom)
 source=("https://files.teamspeak-services.com/pre_releases/client/${pkgver//_/-}/teamspeak-client.tar.gz"
         "teamspeak-client.desktop")
 sha256sums=('b9ba408a0b58170ce32384fc8bba56800840d694bd310050cbadd09246d4bf27'
-            'd91c8cb4c18dbffc689609739ece8a45dfe199479de40c81369520d4a3dddc98')
+            '2927ed076ec9a8ee2aeb55a92d3e1cf260e709da76cbb760efef601b5b056c04')
 
 package() {
 	install -Dm644 "${srcdir}/teamspeak-client.desktop" "${pkgdir}/usr/share/applications/teamspeak-client.desktop"
