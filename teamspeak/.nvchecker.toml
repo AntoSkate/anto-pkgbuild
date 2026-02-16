@@ -1,0 +1,6 @@
+[teamspeak]
+source = 'regex'
+url = 'https://www.teamspeak.com/en/downloads/'
+regex = 'pre_releases/client/([\d.]+-[\w]+[\d.]+)/'
+from_pattern = '([\d.]+)-([\w]+[\d.]+)'
+to_pattern = '\1_\2'

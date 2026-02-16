@@ -1,0 +1,25 @@
+pkgname="teamspeak"
+pkgver=6.0.0_beta3.4
+pkgrel=1
+pkgdesc="TeamSpeak. Your Team. Your Rules."
+arch=('x86_64')
+url="https://www.teamspeak.com"
+license=(custom)
+source=("https://files.teamspeak-services.com/pre_releases/client/${pkgver//_/-}/teamspeak-client.tar.gz"
+        "teamspeak-client.desktop")
+sha256sums=('b9ba408a0b58170ce32384fc8bba56800840d694bd310050cbadd09246d4bf27'
+            'd91c8cb4c18dbffc689609739ece8a45dfe199479de40c81369520d4a3dddc98')
+
+package() {
+	install -Dm644 "${srcdir}/teamspeak-client.desktop" "${pkgdir}/usr/share/applications/teamspeak-client.desktop"
+	rm teamspeak-client.desktop teamspeak-client.tar.gz
+
+	mkdir -p "${pkgdir}/opt" "${pkgdir}/usr/bin" "${pkgdir}/usr/share/licenses"
+	mv "${srcdir}" "${pkgdir}/opt/teamspeak-client"
+	ln -s "/opt/teamspeak-client/TeamSpeak" "${pkgdir}/usr/bin/TeamSpeak"
+	for res in 48 128 256; do
+		mkdir -p ${pkgdir}/usr/share/icons/hicolor/${res}x${res}/apps
+		ln -s /opt/teamspeak-client/logo-$res.png ${pkgdir}/usr/share/icons/hicolor/${res}x${res}/apps/teamspeak-client.png
+	done
+	ln -s "/opt/teamspeak-client/licenses" "${pkgdir}/usr/share/licenses/teamspeak"
+}
