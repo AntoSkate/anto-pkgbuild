@@ -1,5 +1,5 @@
 pkgname="eden-git"
-pkgver=0.2.0.rc1.r3.g50ec089
+pkgver=0.2.0.rc2.r137.g5575d77
 pkgrel=1
 pkgdesc="Experimental open-source emulator for the Nintendo Switch"
 arch=('x86_64')
@@ -93,7 +93,6 @@ build() {
 		-Dcpp-jwt_FORCE_BUNDLED=ON \
 		-Dfrozen_FORCE_BUNDLED=ON \
 		-Dhttplib_FORCE_BUNDLED=ON \
-		-Dmcl_FORCE_BUNDLED=ON \
 		-Dnx_tzdb_FORCE_BUNDLED=ON \
 		-Dsirit_FORCE_BUNDLED=ON \
 		-Dunordered_dense_FORCE_BUNDLED=ON \
