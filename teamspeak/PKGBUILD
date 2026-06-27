@@ -1,5 +1,5 @@
 pkgname="teamspeak"
-pkgver=6.0.0_beta3.4
+pkgver=6.0.0_beta4.1
 pkgrel=1
 pkgdesc="TeamSpeak. Your Team. Your Rules."
 arch=('x86_64')
@@ -7,7 +7,7 @@ url="https://www.teamspeak.com"
 license=(custom)
 source=("https://files.teamspeak-services.com/pre_releases/client/${pkgver//_/-}/teamspeak-client.tar.gz"
         "teamspeak-client.desktop")
-sha256sums=('b9ba408a0b58170ce32384fc8bba56800840d694bd310050cbadd09246d4bf27'
+sha256sums=('edfd154102dae0683baa05cc55fa0f60f6b33d103db98797db9d63de61da48ba'
             '2927ed076ec9a8ee2aeb55a92d3e1cf260e709da76cbb760efef601b5b056c04')
 
 package() {
